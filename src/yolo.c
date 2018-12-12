@@ -282,8 +282,8 @@ void validate_yolo_recall(char *cfgfile, char *weightfile)
     }
 }
 
-void test_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
-{
+void test_yolo(char *cfgfile, char *weightfile, char *filename, float thresh, int save_output)
+{   
     image **alphabet = load_alphabet();
     network net = parse_network_cfg(cfgfile);
     if(weightfile){
@@ -319,7 +319,7 @@ void test_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
         get_detection_boxes(l, 1, 1, thresh, probs, boxes, 0);
         if (nms) do_nms_sort(boxes, probs, l.side*l.side*l.n, l.classes, nms);
         //draw_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, alphabet, 20);
-        draw_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, alphabet, 20);
+        draw_detections_writetofile(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, alphabet, 20, save_output);
         save_image(im, "predictions");
         show_image(im, "predictions");
 
@@ -338,6 +338,7 @@ void run_yolo(int argc, char **argv)
     char *prefix = find_char_arg(argc, argv, "-prefix", 0);
     float thresh = find_float_arg(argc, argv, "-thresh", .2);
     int cam_index = find_int_arg(argc, argv, "-c", 0);
+    int save_output = find_int_arg(argc, argv, "-save_output", 1);
     int frame_skip = find_int_arg(argc, argv, "-s", 0);
     if(argc < 4){
         fprintf(stderr, "usage: %s %s [train/test/valid] [cfg] [weights (optional)]\n", argv[0], argv[1]);
@@ -347,7 +348,7 @@ void run_yolo(int argc, char **argv)
     char *cfg = argv[3];
     char *weights = (argc > 4) ? argv[4] : 0;
     char *filename = (argc > 5) ? argv[5]: 0;
-    if(0==strcmp(argv[2], "test")) test_yolo(cfg, weights, filename, thresh);
+    if(0==strcmp(argv[2], "test")) test_yolo(cfg, weights, filename, thresh, save_output);
     else if(0==strcmp(argv[2], "train")) train_yolo(cfg, weights);
     else if(0==strcmp(argv[2], "valid")) validate_yolo(cfg, weights);
     else if(0==strcmp(argv[2], "recall")) validate_yolo_recall(cfg, weights);

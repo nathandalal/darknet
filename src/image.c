@@ -179,7 +179,19 @@ image **load_alphabet()
 
 void draw_detections(image im, int num, float thresh, box *boxes, float **probs, char **names, image **alphabet, int classes)
 {
+    draw_detections_writetofile(im, num, thresh, boxes, probs, names, alphabet, classes, 0);
+}
+
+void draw_detections_writetofile(image im, int num, float thresh, box *boxes, float **probs, char **names, image **alphabet, int classes, int save_output)
+{
     int i;
+    FILE* classes_file;
+
+    save_output = 1; // Keep here, may not be necessary.
+    if (save_output) {
+        classes_file = fopen("classes.txt", "w");
+    }
+
 
     for(i = 0; i < num; ++i){
         int class = max_index(probs[i], classes);
@@ -199,6 +211,10 @@ void draw_detections(image im, int num, float thresh, box *boxes, float **probs,
             float green = get_color(1,offset,classes);
             float blue = get_color(0,offset,classes);
             float rgb[3];
+
+            if (save_output) {
+                fprintf(classes_file, "%s %.0f\n", names[class], prob*100);
+            }
 
             //width = prob*20+2;
 
@@ -223,6 +239,10 @@ void draw_detections(image im, int num, float thresh, box *boxes, float **probs,
                 draw_label(im, top + width, left, label, rgb);
             }
         }
+    }
+
+    if (save_output) {
+        fclose(classes_file);
     }
 }
 
